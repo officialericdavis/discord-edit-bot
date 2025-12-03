@@ -24,8 +24,15 @@ const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('
 
 for (const file of commandFiles) {
     const filePath = path.join(commandsPath, file);
-    const command = await import(pathToFileURL(filePath).href);
-    client.commands.set(command.default.data.name, command.default);
+
+    const { default: command } = await import(pathToFileURL(filePath).href);
+
+    if (!command || !command.data || !command.execute) {
+        console.error(`❌ Invalid command file: ${file}`);
+        continue;
+    }
+
+    client.commands.set(command.data.name, command);
 }
 
 client.once('clientReady', () => {
@@ -38,13 +45,22 @@ client.on('interactionCreate', async interaction => {
 
     const command = client.commands.get(interaction.commandName);
 
-    if (!command) return;
+    if (!command) {
+        console.error(`❌ Command not found: ${interaction.commandName}`);
+        return interaction.reply({
+            content: 'Command not registered on the bot.',
+            flags: 64 // ephemeral replacement
+        });
+    }
 
     try {
-        await command.default.execute(interaction);
+        await command.execute(interaction);
     } catch (error) {
         console.error(error);
-        await interaction.reply({ content: 'There was an error executing this command!', ephemeral: true });
+        await interaction.reply({
+            content: 'There was an error executing this command!',
+            flags: 64
+        });
     }
 });
 
