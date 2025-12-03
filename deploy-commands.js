@@ -1,13 +1,22 @@
-const { REST, Routes } = require('discord.js');
-const fs = require('node:fs');
-require('dotenv').config();
+import { REST, Routes } from 'discord.js';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const commands = [];
-const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+const commandsPath = path.join(__dirname, 'commands');
+const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-    const command = require(`./commands/${file}`);
-    commands.push(command.data.toJSON());
+    const filePath = path.join(commandsPath, file);
+    const command = await import(filePath);
+    commands.push(command.default.data.toJSON());
 }
 
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
