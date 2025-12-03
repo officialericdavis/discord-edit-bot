@@ -1,6 +1,6 @@
 import { SlashCommandBuilder } from 'discord.js';
 
-module.exports = {
+export default {
     data: new SlashCommandBuilder()
         .setName('doneedit')
         .setDescription('Mark an edit as finished and notify the channel')
