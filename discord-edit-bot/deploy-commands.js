@@ -1,36 +1,26 @@
-import 'dotenv/config';
-import { REST, Routes } from 'discord.js';
-import fs from 'node:fs';
-import path from 'node:path';
-
-const { DISCORD_TOKEN, CLIENT_ID, GUILD_ID } = process.env;
+const { REST, Routes } = require('discord.js');
+const fs = require('node:fs');
+require('dotenv').config();
 
 const commands = [];
-
-const commandsPath = path.join(process.cwd(), 'commands');
-const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith('.js'));
+const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
-  const filePath = path.join(commandsPath, file);
-  const command = await import(`file:///${filePath.replace(/\\/g, '/')}`);
-  commands.push(command.default.data.toJSON());
+    const command = require(`./commands/${file}`);
+    commands.push(command.data.toJSON());
 }
 
-const rest = new REST({ version: '10' }).setToken(DISCORD_TOKEN);
+const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 
-async function main() {
-  try {
-    console.log('Registering slash commands...');
-
-    await rest.put(
-      Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID),
-      { body: commands }
-    );
-
-    console.log('Slash commands registered successfully.');
-  } catch (error) {
-    console.error('Error registering commands:', error);
-  }
-}
-
-main();
+(async () => {
+    try {
+        console.log('Started refreshing application (/) commands.');
+        await rest.put(
+            Routes.applicationCommands(process.env.CLIENT_ID),
+            { body: commands }
+        );
+        console.log('Successfully registered application (/) commands.');
+    } catch (error) {
+        console.error(error);
+    }
+})();
