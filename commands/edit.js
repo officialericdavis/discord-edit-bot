@@ -31,11 +31,11 @@ export default {
         return;
       }
 
-      await channel.send(
+       await channel.send(
         `📝 **New Content Ready to Edit!**  
-**From:** ${interaction.user}  
-**Details:** ${details}
-`
+**From:** ${interaction.user.username}  
+**In:** #${interaction.channel.name}  
+**Details:** ${details}`
       );
 
     } catch (err) {
